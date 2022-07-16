@@ -1,6 +1,8 @@
 # Alt-Tab-Randomizer
 Randomly switches active window in Windows to one from a selected list.
-Used for speedrunning
+Used for speedrunning.
+
+Despite what the name suggests, does not actually use Alt+Tab to switch between games.
 
 Inspired by the Bizhawk game shuffler
 https://github.com/authorblues/bizhawk-shuffler-2
