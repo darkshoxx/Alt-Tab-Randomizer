@@ -5,15 +5,9 @@ import win32com.client as the_client
 import time
 import random
 
-from utils import get_all_handles, filter_handles_by_exe_name
+from randomizer.utils import get_all_handles, filter_handles_by_exe_name
 
-LIST_OF_WRONG_WINDOWS = [
-    "MSCTFIME UI",
-    "Default IME",
-    "ScummVM Status Window",
-    "__wglDummyWindowFodder",
-    "NVOGLDC invisible"
-    ]
+
 
 def choose_games_prompt(scummvm_handles):
     chosen_handles = []

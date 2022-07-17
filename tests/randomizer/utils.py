@@ -6,7 +6,13 @@ import win32con as con
 import pywintypes
 
 ### Global constants
-
+LIST_OF_WRONG_WINDOWS = [
+    "MSCTFIME UI",
+    "Default IME",
+    "ScummVM Status Window",
+    "__wglDummyWindowFodder",
+    "NVOGLDC invisible"
+    ]
 QUERY_INFO = con.PROCESS_QUERY_INFORMATION
 VM_READ = con.PROCESS_VM_READ
 
@@ -40,11 +46,10 @@ def get_half_handles(current_handle, direction):
 def filter_handles_by_exe_name(list_of_handles):
     scummvm_handles = []
     for handle in list_of_handles:
-        _, ident_b = processes.GetWindowThreadProcessId(handle)
+        ident_b = get_process_id_from_handle(handle)
         # TODO: Replace Try/except with something that doesn't raise an error
         try:
-            process_handle_b = api.OpenProcess(QUERY_INFO | VM_READ, False, ident_b)
-            exe_name = processes.GetModuleFileNameEx(process_handle_b, 0)
+            exe_name = get_exe_from_process_id(ident_b)
         except pywintypes.error:
             #print("an error has occured")
             continue
@@ -53,3 +58,12 @@ def filter_handles_by_exe_name(list_of_handles):
                 scummvm_handles.append(handle)
                 print(gui.GetWindowText(handle))
     return scummvm_handles
+
+def get_process_id_from_handle(handle):
+    _, ident_b = processes.GetWindowThreadProcessId(handle)
+    return ident_b
+
+def get_exe_from_process_id(ident_b):
+    process_handle_b = api.OpenProcess(QUERY_INFO | VM_READ, False, ident_b)
+    exe_name = processes.GetModuleFileNameEx(process_handle_b, 0)
+    return exe_name
