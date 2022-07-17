@@ -11,6 +11,7 @@ https://www.youtube.com/watch?v=gAiCmrKjd7s
 
 For now:
 - pip install pywin32
-- Start at least 2 different games in ScummVM.
-- Run script, choose games and timing.
+- download repo
+- start at least 2 (different) games in ScummVM
+- Run "runner.py" script, choose games and timing
 - Panic!
