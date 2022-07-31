@@ -12,11 +12,12 @@ LIST_OF_WRONG_WINDOWS = [
     "Default IME",
     "ScummVM Status Window",
     "__wglDummyWindowFodder",
-    "NVOGLDC invisible"
-    ]
+    "NVOGLDC invisible",
+]
 # required for usage of api.OpenProcess()
 QUERY_INFO = con.PROCESS_QUERY_INFORMATION
 VM_READ = con.PROCESS_VM_READ
+
 
 def get_all_handles() -> List:
     """Returns a list of all handles. Obtains curent foreground window and 
@@ -29,10 +30,8 @@ def get_all_handles() -> List:
     list_of_handles += previous_handles
     return list_of_handles
 
-def get_half_handles(
-    current_handle: List[int],
-    direction: str
-    )-> List[int]:
+
+def get_half_handles(current_handle: List[int], direction: str) -> List[int]:
     """Helper function to iterate over all handles in front/behind the active 
     window handle.
     Args:
@@ -50,13 +49,14 @@ def get_half_handles(
     half_handles_list = []
     # filling the list using gui.GetWindow, which uses direction_int to specify
     # next or previous window.
-    while(got_a_new_window):
+    while got_a_new_window:
         current_handle = gui.GetWindow(current_handle, direction_int)
         if (current_handle not in half_handles_list) and current_handle != 0:
             half_handles_list.append(current_handle)
         else:
             got_a_new_window = False
     return half_handles_list
+
 
 def filter_handles_by_exe_name(list_of_handles):
     """Helper function to remove all handles that do not originate from ScummVM
@@ -71,7 +71,7 @@ def filter_handles_by_exe_name(list_of_handles):
         try:
             exe_name = get_exe_from_process_id(ident_b)
         except pywintypes.error:
-            #print("an error has occured")
+            # print("an error has occured")
             continue
         if exe_name[-11:] == "scummvm.exe":
             # removes handles that are from ScummVM but known not to be
@@ -80,6 +80,7 @@ def filter_handles_by_exe_name(list_of_handles):
                 scummvm_handles.append(handle)
                 print(gui.GetWindowText(handle))
     return scummvm_handles
+
 
 def get_process_id_from_handle(handle: int):
     """Gets process id from the window handle. Required to find exe
@@ -91,7 +92,8 @@ def get_process_id_from_handle(handle: int):
     _, ident_b = processes.GetWindowThreadProcessId(handle)
     return ident_b
 
-def get_exe_from_process_id(ident_b)-> str:
+
+def get_exe_from_process_id(ident_b) -> str:
     """Gets the process handle from the PID, returns string of exe"""
     process_handle_b = api.OpenProcess(QUERY_INFO | VM_READ, False, ident_b)
     exe_name = processes.GetModuleFileNameEx(process_handle_b, 0)

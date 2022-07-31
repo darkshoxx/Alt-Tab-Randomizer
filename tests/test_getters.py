@@ -1,5 +1,12 @@
 import pytest
-from randomizer.utils import filter_handles_by_exe_name, get_all_handles, get_exe_from_process_id, get_half_handles, get_process_id_from_handle
+from randomizer.utils import (
+    filter_handles_by_exe_name,
+    get_all_handles,
+    get_exe_from_process_id,
+    get_half_handles,
+    get_process_id_from_handle,
+)
+
 
 @pytest.mark.unit
 def test_get_all_handles():
@@ -8,6 +15,7 @@ def test_get_all_handles():
     assert len(handles) > 0
     with pytest.raises(Exception):
         get_half_handles(0, None)
+
 
 @pytest.mark.unit
 def test_filter_by_exe():

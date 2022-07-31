@@ -1,4 +1,3 @@
-
 from typing import List
 import win32.win32gui as gui
 import win32com.client as the_client
@@ -7,7 +6,6 @@ import time
 import random
 
 from randomizer.utils import get_all_handles, filter_handles_by_exe_name
-
 
 
 def choose_games_prompt(scummvm_handles: List) -> List:
@@ -47,22 +45,25 @@ def choose_games_prompt(scummvm_handles: List) -> List:
         if int_choice <= i:
             # Adding to chosen handles
             chosen_handles.append(scummvm_handles[int_choice - 1])
-            print(f"you have chosen {gui.GetWindowText(scummvm_handles[int_choice - 1])}")
+            print(
+                f"you have chosen {gui.GetWindowText(scummvm_handles[int_choice - 1])}"
+            )
             # removing from list of options
             scummvm_handles.remove(scummvm_handles[int_choice - 1])
             choice = input("press enter to choose another game. type 'y' to end.")
             if i == 1 or choice == "y":
                 return chosen_handles
-        
+
         # Choice invalid
         print("Invalid choice, please try again\n")
 
+
 def random_runner(
     chosen_list: List,
-    min:int=None,
-    max:int=None,
-    remove_current_game: bool=None
-    ):
+    min: int = None,
+    max: int = None,
+    remove_current_game: bool = None,
+):
     """Randomly resetting loop. Chooses random next game to display. Time until
     next reset is randomly chosen between min and max seconds.
     Args:
@@ -77,7 +78,9 @@ def random_runner(
     if max is None:
         max = int(input("what is the maximum number of seconds on the same game?"))
     if remove_current_game is None:
-        remove_current_game = not bool(input("Do you allow staying in the same game? (default = n)"))
+        remove_current_game = not bool(
+            input("Do you allow staying in the same game? (default = n)")
+        )
 
     shell = the_client.Dispatch("WScript.Shell")
     # Start with first entry on list
@@ -94,12 +97,13 @@ def random_runner(
         # get time for random sleeps.
         float_random = random.uniform(min, max)
         time.sleep(float_random)
-        # required to fix a bug with active windows. 
+        # required to fix a bug with active windows.
         # Maybe better solutions exist.
-        shell.SendKeys('%')
+        shell.SendKeys("%")
         current_handle = next_game
         # Choose next window, start over.
         gui.SetForegroundWindow(next_game)
+
 
 if __name__ == "__main__":
     """Acutal execution. Obtains all handles, filters to get the ones
@@ -107,10 +111,7 @@ if __name__ == "__main__":
     list_of_all_handles = get_all_handles()
     scummvm_handles = filter_handles_by_exe_name(list_of_all_handles)
     chosen_list = choose_games_prompt(scummvm_handles)
-    if len(chosen_list)<2:
+    if len(chosen_list) < 2:
         raise Exception("need 2 games at least")
     print(chosen_list)
     random_runner(chosen_list)
-
-
-
