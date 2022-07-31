@@ -107,9 +107,13 @@ def random_runner(
             time.sleep(float_random)
         elif mode == "clicks":
             click_limit = random.choice(range(min, max))
+            num_of_clicks = 0
             while click_limit > 0:
+                with open('clicks.txt', mode="w") as click_file:
+                    click_file.write(str(num_of_clicks))
                 wait_for_click()
                 click_limit -= 1
+                num_of_clicks += 1
         else:
             raise Exception("invalid mode")
         # using a sliced copy of all games to modify later.
