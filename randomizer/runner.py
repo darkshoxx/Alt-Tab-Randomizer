@@ -1,9 +1,7 @@
-from logging import exception
-from msilib.schema import Error
 from typing import List
-import click
 import win32.win32gui as gui
 import win32com.client as the_client
+import win32api as api
 import pywintypes
 
 import time
@@ -90,14 +88,14 @@ def random_runner(
             input("Do you allow staying in the same game? (default = n)")
         )
     if mode is None:
-        mode = (
-            input("random time: [seconds]\n random clicks: clicks")
-        )
+        mode = input("random time: [seconds]\n random clicks: clicks")
         if mode != "clicks":
             mode = "seconds"
     shell = the_client.Dispatch("WScript.Shell")
     # Start with first entry on list
     current_handle = chosen_list[0]
+    shell.SendKeys("%")
+    gui.SetForegroundWindow(current_handle)
     # TODO:check_window_validity(active_game_list)
     # closing windows removes them from chosen list.
     while len(chosen_list) > 1:
@@ -143,9 +141,23 @@ def random_runner(
             print(f"Final Game {next_game} was closed.")
     print("randomizer run ended successfully")
 
+
 def wait_for_click():
-    # TODO: wait for click function
-    pass
+    state = api.GetKeyState(0x01)
+    # if function is called with a clicked mousebutton, wait for release
+    while state < 0:
+        state = api.GetKeyState(0x01)
+        time.sleep(0.001)
+    # now we are in released state. Wait for click.
+    while state > -1:
+        state = api.GetKeyState(0x01)
+        time.sleep(0.001)
+    # Button was pressed down.
+    while state < 0:
+        state = api.GetKeyState(0x01)
+        time.sleep(0.001)
+    # Button was released. Click complete.
+
 
 def check_window_validity(active_game_list):
     pass
