@@ -46,11 +46,15 @@ def choose_games_prompt(scummvm_handles: List) -> List:
             # Adding to chosen handles
             chosen_handles.append(scummvm_handles[int_choice - 1])
             print(
-                f"you have chosen {gui.GetWindowText(scummvm_handles[int_choice - 1])}"
+                f"""you have chosen {
+                    gui.GetWindowText(scummvm_handles[int_choice - 1])
+                    }"""
             )
             # removing from list of options
             scummvm_handles.remove(scummvm_handles[int_choice - 1])
-            choice = input("press enter to choose another game. type 'y' to end.")
+            choice = input(
+                "press enter to choose another game. type 'y' to end."
+                )
             if i == 1 or choice == "y":
                 return chosen_handles
 
@@ -74,9 +78,13 @@ def random_runner(
     """
     # Setting non-default values via prompts
     if min is None:
-        min = int(input("what is the minimum number of seconds on the same game?"))
+        min = int(
+            input("what is the minimum number of seconds on the same game?")
+            )
     if max is None:
-        max = int(input("what is the maximum number of seconds on the same game?"))
+        max = int(
+            input("what is the maximum number of seconds on the same game?")
+            )
     if remove_current_game is None:
         remove_current_game = not bool(
             input("Do you allow staying in the same game? (default = n)")

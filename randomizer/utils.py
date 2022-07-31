@@ -5,7 +5,10 @@ import win32api as api
 import win32con as con
 import pywintypes
 
-### Global constants
+####################
+# Global constants #
+####################
+
 # ScummVM handles that aren't the game.
 LIST_OF_WRONG_WINDOWS = [
     "MSCTFIME UI",
@@ -20,7 +23,7 @@ VM_READ = con.PROCESS_VM_READ
 
 
 def get_all_handles() -> List:
-    """Returns a list of all handles. Obtains curent foreground window and 
+    """Returns a list of all handles. Obtains curent foreground window and
     iterates through windows in front and behind."""
     current_handle = gui.GetForegroundWindow()
     list_of_handles = [current_handle]
@@ -32,7 +35,7 @@ def get_all_handles() -> List:
 
 
 def get_half_handles(current_handle: List[int], direction: str) -> List[int]:
-    """Helper function to iterate over all handles in front/behind the active 
+    """Helper function to iterate over all handles in front/behind the active
     window handle.
     Args:
         current_handle (List[int]): singleton list containing active window
@@ -87,7 +90,7 @@ def get_process_id_from_handle(handle: int):
     Args:
         handle (int): handle to obtain id from
     Returns:
-        ident_b: PID for exe    
+        ident_b: PID for exe
     """
     _, ident_b = processes.GetWindowThreadProcessId(handle)
     return ident_b
