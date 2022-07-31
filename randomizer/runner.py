@@ -71,6 +71,7 @@ def random_runner(
         max (int): maximal number of seconds before window switch
         remove_current_game (bool): allowing to remain in the same game.
     """
+    # Setting non-default values via prompts
     if min is None:
         min = int(input("what is the minimum number of seconds on the same game?"))
     if max is None:
@@ -79,18 +80,25 @@ def random_runner(
         remove_current_game = not bool(input("Do you allow staying in the same game? (default = n)"))
 
     shell = the_client.Dispatch("WScript.Shell")
+    # Start with first entry on list
     current_handle = chosen_list[0]
     while True:
+        # using a sliced copy of all games to modify later. Optionally removing
+        # current game.
         active_game_list = chosen_list[:]
-        float_random = random.uniform(min, max)
         if remove_current_game and (current_handle in active_game_list):
             active_game_list.remove(current_handle)
         print(active_game_list)
         next_game = random.choice(active_game_list)
         print(next_game)
+        # get time for random sleeps.
+        float_random = random.uniform(min, max)
         time.sleep(float_random)
+        # required to fix a bug with active windows. 
+        # Maybe better solutions exist.
         shell.SendKeys('%')
         current_handle = next_game
+        # Choose next window, start over.
         gui.SetForegroundWindow(next_game)
 
 if __name__ == "__main__":
