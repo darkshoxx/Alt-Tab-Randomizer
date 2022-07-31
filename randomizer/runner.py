@@ -1,6 +1,7 @@
 from typing import List
 import win32.win32gui as gui
 import win32com.client as the_client
+import win32api as api
 import pywintypes
 
 import time
@@ -66,6 +67,7 @@ def random_runner(
     min: int = None,
     max: int = None,
     remove_current_game: bool = None,
+    mode: str = None,
 ):
     """Randomly resetting loop. Chooses random next game to display. Time until
     next reset is randomly chosen between min and max seconds.
@@ -74,27 +76,42 @@ def random_runner(
         min (int): minimal number of seconds before window switch
         max (int): maximal number of seconds before window switch
         remove_current_game (bool): allowing to remain in the same game.
+        mode (str): "seconds" or "clicks"
     """
     # Setting non-default values via prompts
+    if mode is None:
+        mode_selection_string = "Please select mode: \nrandom time: [seconds]"
+        mode_selection_string += "\nrandom clicks: clicks\n"
+        mode = input(mode_selection_string)
+        if mode != "clicks":
+            mode = "seconds"
     if min is None:
-        min = int(input("minimum number of seconds on the same game?"))
+        min = int(input(f"minimum number of {mode} on the same game?"))
     if max is None:
-        max = int(input("maximum number of seconds on the same game?"))
+        max = int(input(f"maximum number of {mode} on the same game?"))
     if remove_current_game is None:
         remove_current_game = not bool(
             input("Do you allow staying in the same game? (default = n)")
         )
-
     shell = the_client.Dispatch("WScript.Shell")
     # Start with first entry on list
     current_handle = chosen_list[0]
+    shell.SendKeys("%")
+    gui.SetForegroundWindow(current_handle)
     # TODO:check_window_validity(active_game_list)
     # closing windows removes them from chosen list.
     while len(chosen_list) > 1:
-        # get time for random sleeps.
-        float_random = random.uniform(min, max)
-        time.sleep(float_random)
-
+        if mode == "seconds":
+            # get time for random sleeps.
+            float_random = random.uniform(min, max)
+            time.sleep(float_random)
+        elif mode == "clicks":
+            click_limit = random.choice(range(min, max))
+            while click_limit > 0:
+                wait_for_click()
+                click_limit -= 1
+        else:
+            raise Exception("invalid mode")
         # using a sliced copy of all games to modify later.
         active_game_list = chosen_list[:]
         # Optionally removing current game.
@@ -124,6 +141,23 @@ def random_runner(
             chosen_list.remove(chosen_list[0])
             print(f"Final Game {next_game} was closed.")
     print("randomizer run ended successfully")
+
+
+def wait_for_click():
+    state = api.GetKeyState(0x01)
+    # if function is called with a clicked mousebutton, wait for release
+    while state < 0:
+        state = api.GetKeyState(0x01)
+        time.sleep(0.001)
+    # now we are in released state. Wait for click.
+    while state > -1:
+        state = api.GetKeyState(0x01)
+        time.sleep(0.001)
+    # Button was pressed down.
+    while state < 0:
+        state = api.GetKeyState(0x01)
+        time.sleep(0.001)
+    # Button was released. Click complete.
 
 
 def check_window_validity(active_game_list):
