@@ -79,18 +79,20 @@ def random_runner(
         mode (str): "seconds" or "clicks"
     """
     # Setting non-default values via prompts
+    if mode is None:
+        mode_selection_string = "Please select mode: \nrandom time: [seconds]"
+        mode_selection_string += "\nrandom clicks: clicks\n"
+        mode = input(mode_selection_string)
+        if mode != "clicks":
+            mode = "seconds"
     if min is None:
-        min = int(input("minimum number of seconds on the same game?"))
+        min = int(input(f"minimum number of {mode} on the same game?"))
     if max is None:
-        max = int(input("maximum number of seconds on the same game?"))
+        max = int(input(f"maximum number of {mode} on the same game?"))
     if remove_current_game is None:
         remove_current_game = not bool(
             input("Do you allow staying in the same game? (default = n)")
         )
-    if mode is None:
-        mode = input("random time: [seconds]\n random clicks: clicks")
-        if mode != "clicks":
-            mode = "seconds"
     shell = the_client.Dispatch("WScript.Shell")
     # Start with first entry on list
     current_handle = chosen_list[0]
@@ -110,7 +112,6 @@ def random_runner(
                 click_limit -= 1
         else:
             raise Exception("invalid mode")
-
         # using a sliced copy of all games to modify later.
         active_game_list = chosen_list[:]
         # Optionally removing current game.
