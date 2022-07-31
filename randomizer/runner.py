@@ -19,17 +19,24 @@ def choose_games_prompt(scummvm_handles: List) -> List:
         chosen_handles (List): list of hadles of the chosen games."""
     chosen_handles = []
     choice = ""
+
+    # Opening prompt with abort option
     while choice in ["", "n"]:
         choice = input("Dear user, would you like to select games? [y]/n\n")
         if choice == "":
             choice = "y"
         if choice == "":
             return None
+
+    # Selection of games, with abort option
     choice = ""
     while choice in ["", "n", "0"]:
 
-        window_selection_string = "Please select one of these windows to add to the rando:\n"
-        window_selection_string += "0) Abort\n"
+        window_selection_string = "Please select one of these windows"
+        window_selection_string += " to add to the rando:\n"
+        window_selection_string += "0) I have selected all the games\n"
+
+        # Listing all game names that haven't been chosen yet
         for i, item in enumerate(scummvm_handles, start=1):
             window_name = gui.GetWindowText(item)
             window_selection_string += f"{i}) {window_name}\n"
@@ -38,14 +45,32 @@ def choose_games_prompt(scummvm_handles: List) -> List:
             return chosen_handles
         int_choice = int(choice)
         if int_choice <= i:
+            # Adding to chosen handles
             chosen_handles.append(scummvm_handles[int_choice - 1])
             print(f"you have chosen {gui.GetWindowText(scummvm_handles[int_choice - 1])}")
+            # removing from list of options
             scummvm_handles.remove(scummvm_handles[int_choice - 1])
             choice = input("press enter to choose another game. type 'y' to end.")
             if i == 1 or choice == "y":
                 return chosen_handles
+        
+        # Choice invalid
+        print("Invalid choice, please try again\n")
 
-def random_runner(chosen_list, min=None, max=None, remove_current_game=None):
+def random_runner(
+    chosen_list: List,
+    min:int=None,
+    max:int=None,
+    remove_current_game: bool=None
+    ):
+    """Randomly resetting loop. Chooses random next game to display. Time until
+    next reset is randomly chosen between min and max seconds.
+    Args:
+        chosen_list (List): list of handles belonging the chosen games.
+        min (int): minimal number of seconds before window switch
+        max (int): maximal number of seconds before window switch
+        remove_current_game (bool): allowing to remain in the same game.
+    """
     if min is None:
         min = int(input("what is the minimum number of seconds on the same game?"))
     if max is None:
@@ -69,7 +94,8 @@ def random_runner(chosen_list, min=None, max=None, remove_current_game=None):
         gui.SetForegroundWindow(next_game)
 
 if __name__ == "__main__":
-
+    """Acutal execution. Obtains all handles, filters to get the ones
+    from ScummVM, prompts user to choose, starts random_runner."""
     list_of_all_handles = get_all_handles()
     scummvm_handles = filter_handles_by_exe_name(list_of_all_handles)
     chosen_list = choose_games_prompt(scummvm_handles)
