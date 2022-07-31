@@ -1,6 +1,7 @@
 from typing import List
 import win32.win32gui as gui
 import win32com.client as the_client
+import pywintypes
 
 import time
 import random
@@ -52,9 +53,7 @@ def choose_games_prompt(scummvm_handles: List) -> List:
             )
             # removing from list of options
             scummvm_handles.remove(scummvm_handles[int_choice - 1])
-            choice = input(
-                "press enter to choose another game. type 'y' to end."
-                )
+            choice = input("press enter to choose next game. type 'y' to end.")
             if i == 1 or choice == "y":
                 return chosen_handles
 
@@ -78,13 +77,9 @@ def random_runner(
     """
     # Setting non-default values via prompts
     if min is None:
-        min = int(
-            input("what is the minimum number of seconds on the same game?")
-            )
+        min = int(input("minimum number of seconds on the same game?"))
     if max is None:
-        max = int(
-            input("what is the maximum number of seconds on the same game?")
-            )
+        max = int(input("maximum number of seconds on the same game?"))
     if remove_current_game is None:
         remove_current_game = not bool(
             input("Do you allow staying in the same game? (default = n)")
@@ -93,24 +88,46 @@ def random_runner(
     shell = the_client.Dispatch("WScript.Shell")
     # Start with first entry on list
     current_handle = chosen_list[0]
-    while True:
-        # using a sliced copy of all games to modify later. Optionally removing
-        # current game.
-        active_game_list = chosen_list[:]
-        if remove_current_game and (current_handle in active_game_list):
-            active_game_list.remove(current_handle)
-        print(active_game_list)
-        next_game = random.choice(active_game_list)
-        print(next_game)
+    # TODO:check_window_validity(active_game_list)
+    # closing windows removes them from chosen list.
+    while len(chosen_list) > 1:
         # get time for random sleeps.
         float_random = random.uniform(min, max)
         time.sleep(float_random)
+
+        # using a sliced copy of all games to modify later.
+        active_game_list = chosen_list[:]
+        # Optionally removing current game.
+        if remove_current_game and (current_handle in active_game_list):
+            active_game_list.remove(current_handle)
+        # TODO: check_window_validity(active_game_list)
+        print(active_game_list)
+        next_game = random.choice(active_game_list)
+        print(next_game)
         # required to fix a bug with active windows.
         # Maybe better solutions exist.
         shell.SendKeys("%")
         current_handle = next_game
         # Choose next window, start over.
-        gui.SetForegroundWindow(next_game)
+        try:
+            gui.SetForegroundWindow(next_game)
+        except pywintypes.error:
+            chosen_list.remove(next_game)
+            print(f"Warning, game {next_game} was closed.")
+    while len(chosen_list) == 1:
+        # very lazy way of checking that the window is still open
+        print(f"Final Game {next_game} is still running.")
+        time.sleep(5)
+        try:
+            gui.SetForegroundWindow(chosen_list[0])
+        except pywintypes.error:
+            chosen_list.remove(chosen_list[0])
+            print(f"Final Game {next_game} was closed.")
+    print("randomizer run ended successfully")
+
+
+def check_window_validity(active_game_list):
+    pass
 
 
 if __name__ == "__main__":
