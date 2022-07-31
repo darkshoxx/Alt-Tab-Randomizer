@@ -1,4 +1,7 @@
+from logging import exception
+from msilib.schema import Error
 from typing import List
+import click
 import win32.win32gui as gui
 import win32com.client as the_client
 import pywintypes
@@ -66,6 +69,7 @@ def random_runner(
     min: int = None,
     max: int = None,
     remove_current_game: bool = None,
+    mode: str = None,
 ):
     """Randomly resetting loop. Chooses random next game to display. Time until
     next reset is randomly chosen between min and max seconds.
@@ -74,6 +78,7 @@ def random_runner(
         min (int): minimal number of seconds before window switch
         max (int): maximal number of seconds before window switch
         remove_current_game (bool): allowing to remain in the same game.
+        mode (str): "seconds" or "clicks"
     """
     # Setting non-default values via prompts
     if min is None:
@@ -84,16 +89,29 @@ def random_runner(
         remove_current_game = not bool(
             input("Do you allow staying in the same game? (default = n)")
         )
-
+    if mode is None:
+        mode = (
+            input("random time: [seconds]\n random clicks: clicks")
+        )
+        if mode != "clicks":
+            mode = "seconds"
     shell = the_client.Dispatch("WScript.Shell")
     # Start with first entry on list
     current_handle = chosen_list[0]
     # TODO:check_window_validity(active_game_list)
     # closing windows removes them from chosen list.
     while len(chosen_list) > 1:
-        # get time for random sleeps.
-        float_random = random.uniform(min, max)
-        time.sleep(float_random)
+        if mode == "seconds":
+            # get time for random sleeps.
+            float_random = random.uniform(min, max)
+            time.sleep(float_random)
+        elif mode == "clicks":
+            click_limit = random.choice(range(min, max))
+            while click_limit > 0:
+                wait_for_click()
+                click_limit -= 1
+        else:
+            raise Exception("invalid mode")
 
         # using a sliced copy of all games to modify later.
         active_game_list = chosen_list[:]
@@ -125,6 +143,9 @@ def random_runner(
             print(f"Final Game {next_game} was closed.")
     print("randomizer run ended successfully")
 
+def wait_for_click():
+    # TODO: wait for click function
+    pass
 
 def check_window_validity(active_game_list):
     pass
