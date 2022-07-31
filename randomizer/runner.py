@@ -1,4 +1,5 @@
 
+from typing import List
 import win32.win32gui as gui
 import win32com.client as the_client
 
@@ -9,7 +10,13 @@ from randomizer.utils import get_all_handles, filter_handles_by_exe_name
 
 
 
-def choose_games_prompt(scummvm_handles):
+def choose_games_prompt(scummvm_handles: List) -> List:
+    """Creates a list of all handles that belong to ScummVM games, and makes
+    the user choose a sublist of at least two.
+    Args:
+        scummvm_handles (List): list of handles belonging to ScummVM
+    Returns:
+        chosen_handles (List): list of hadles of the chosen games."""
     chosen_handles = []
     choice = ""
     while choice in ["", "n"]:

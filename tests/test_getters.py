@@ -15,6 +15,8 @@ def test_filter_by_exe():
     belong to scummvm"""
     handles = get_all_handles()
     filtered_handles = filter_handles_by_exe_name(handles)
+    # This will fail there is no ScummVM instance open.
+    assert len(filtered_handles) > 0
     for handle in filtered_handles:
         id = get_process_id_from_handle(handle)
         exe = get_exe_from_process_id(id)
