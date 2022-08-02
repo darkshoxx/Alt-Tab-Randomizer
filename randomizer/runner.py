@@ -106,14 +106,14 @@ def random_runner(
             float_random = random.uniform(min, max)
             time.sleep(float_random)
         elif mode == "clicks":
-            click_limit = random.choice(range(min, max))
+            click_limit = random.choice(range(min, max + 1))
             num_of_clicks = 0
             while click_limit > 0:
                 game_exe = str(gui.GetWindowText(current_handle))
                 info_string = str(num_of_clicks) + "\n Current game: " + game_exe
                 with open('clicks.txt', mode="w") as click_file:
                     click_file.write(info_string)
-                wait_for_click()
+                wait_for_click(num_of_clicks)
                 click_limit -= 1
                 num_of_clicks += 1
         else:
@@ -149,21 +149,36 @@ def random_runner(
     print("randomizer run ended successfully")
 
 
-def wait_for_click():
-    state = api.GetKeyState(0x01)
-    # if function is called with a clicked mousebutton, wait for release
-    while state < 0:
-        state = api.GetKeyState(0x01)
+def wait_for_click(num_of_clicks: int):
+    left_idle = True
+    right_idle = True
+    if num_of_clicks == 0:
+        left_idle = False
+        right_idle = False
+    left_pressed = False
+    right_pressed = False
+    click_not_occured = True
+    while(click_not_occured):
+        left_state = api.GetKeyState(0x01)
+        right_state = api.GetKeyState(0x02)
+        if left_state > -1:
+            left_idle = True
+        if right_state > -1:
+            right_idle = True
+        if left_idle:
+            if left_state < 0:
+                left_pressed = True
+        if right_idle:
+            if right_state < 0:
+                right_pressed = True
+        if left_pressed:
+            if left_state > -1:
+                click_not_occured = False
+        if right_pressed:
+            if right_state > -1:
+                click_not_occured = False
         time.sleep(0.001)
-    # now we are in released state. Wait for click.
-    while state > -1:
-        state = api.GetKeyState(0x01)
-        time.sleep(0.001)
-    # Button was pressed down.
-    while state < 0:
-        state = api.GetKeyState(0x01)
-        time.sleep(0.001)
-    # Button was released. Click complete.
+
 
 
 def check_window_validity(active_game_list):
