@@ -109,8 +109,10 @@ def random_runner(
             click_limit = random.choice(range(min, max))
             num_of_clicks = 0
             while click_limit > 0:
+                game_exe = str(gui.GetWindowText(current_handle))
+                info_string = str(num_of_clicks) + "\n Current game: " + game_exe
                 with open('clicks.txt', mode="w") as click_file:
-                    click_file.write(str(num_of_clicks))
+                    click_file.write(info_string)
                 wait_for_click()
                 click_limit -= 1
                 num_of_clicks += 1
