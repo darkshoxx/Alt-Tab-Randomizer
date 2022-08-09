@@ -9,6 +9,14 @@ import random
 
 from randomizer.utils import get_all_handles, filter_handles_by_exe_name
 
+# Dictionary that maps keyboard-keys to their API represented signals
+BUTTON_TO_KEY = {
+    "LMB": 0x01,
+    "RMB": 0x02,
+    "Space": 0x20,
+    "Esc": 0x1B,
+}
+
 
 def choose_games_prompt(scummvm_handles: List) -> List:
     """Creates a list of all handles that belong to ScummVM games, and makes
@@ -111,7 +119,7 @@ def random_runner(
             while click_limit > 0:
                 game_exe = str(gui.GetWindowText(current_handle))
                 info_string = str(num_of_clicks) + "\n Current game: " + game_exe
-                with open('clicks.txt', mode="w") as click_file:
+                with open("clicks.txt", mode="w") as click_file:
                     click_file.write(info_string)
                 wait_for_click(num_of_clicks)
                 click_limit -= 1
@@ -149,7 +157,48 @@ def random_runner(
     print("randomizer run ended successfully")
 
 
-def wait_for_click(num_of_clicks: int):
+def wait_for_click(
+    num_of_clicks: int, list_of_buttons: list = ["LMB", "RMB", "Space", "Esc"]
+):
+    """Checks every button in the list for occurring presses. Can handle mutiple
+    buttons held during press.
+    Arguments:
+    num_of_clicks (int): number of clicks since last randomization
+    list_of_buttons (list): list of buttons that need to be observed.
+    """
+    # Instantiate arrays where each position represents a key. Keeping track of
+    # Idle state and pressed state.
+    n = len(list_of_buttons)
+    idle_list = [True] * n
+    if num_of_clicks == 0:
+        idle_list = [False] * n
+    pressed_list = [False] * n
+    click_not_occured = True
+    while click_not_occured:
+        # get actual values from buttons
+        state_list = [api.GetKeyState(BUTTON_TO_KEY[key]) for key in BUTTON_TO_KEY]
+
+        # test for idle buttons
+        for index in range(n):
+            if state_list[index] > -1:
+                idle_list[index] = True
+
+        # test for buttons pressed after being idle
+        for index in range(n):
+            if idle_list[index]:
+                if state_list[index] < 0:
+                    pressed_list[index] = True
+
+        # test for buttons released after being pressed
+        for index in range(n):
+            if pressed_list[index]:
+                if state_list[index] > -1:
+                    click_not_occured = False
+        # Wait for update
+        time.sleep(0.001)
+
+
+def wait_for_click_deprecated(num_of_clicks: int):
     left_idle = True
     right_idle = True
     if num_of_clicks == 0:
@@ -158,7 +207,7 @@ def wait_for_click(num_of_clicks: int):
     left_pressed = False
     right_pressed = False
     click_not_occured = True
-    while(click_not_occured):
+    while click_not_occured:
         left_state = api.GetKeyState(0x01)
         right_state = api.GetKeyState(0x02)
         if left_state > -1:
@@ -178,7 +227,6 @@ def wait_for_click(num_of_clicks: int):
             if right_state > -1:
                 click_not_occured = False
         time.sleep(0.001)
-
 
 
 def check_window_validity(active_game_list):
