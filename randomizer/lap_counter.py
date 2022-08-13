@@ -2,6 +2,7 @@ import time
 import win32api as api
 
 SPACE_KEY_ASCII_VALUE = 0x20
+SPLIT_KEY_ASCII_VALUE = 0x05
 
 if __name__ == "__main__":
     """Acutal execution. adds 1 to number in file laps.txt when
@@ -15,7 +16,7 @@ if __name__ == "__main__":
         click_file.write(str(hit_counter))
     while True:
 
-        key_state = api.GetKeyState(SPACE_KEY_ASCII_VALUE)
+        key_state = api.GetKeyState(SPLIT_KEY_ASCII_VALUE)
         print(f"state:{key_state}")
         if key_state > -1:
             key_is_pressed = True
