@@ -83,6 +83,6 @@ print(c)
 d = []
 for index in range(len(c) - 1):
     print(index)
-    d.append(c[index + 1]-c[index])
+    d.append(c[index + 1] - c[index])
 for index, item in enumerate(d):
     print(index, item)

@@ -7,7 +7,7 @@ import pywintypes
 import time
 import random
 
-from randomizer.utils import get_all_handles, filter_handles_by_exe_name
+from randomizer.utils import get_all_handles, filter_handles_by_exe_name, write_to_file
 
 # Dictionary that maps keyboard-keys to their API represented signals
 BUTTON_TO_KEY = {
@@ -119,8 +119,7 @@ def random_runner(
             while click_limit > 0:
                 game_exe = str(gui.GetWindowText(current_handle))
                 info_string = str(num_of_clicks) + "\n Current game: " + game_exe
-                with open("clicks.txt", mode="w") as click_file:
-                    click_file.write(info_string)
+                write_to_file(info_string, "clicks.txt")
                 wait_for_click(num_of_clicks)
                 click_limit -= 1
                 num_of_clicks += 1
@@ -196,38 +195,6 @@ def wait_for_click(
                     click_not_occured = False
         # Wait for update
         time.sleep(0.001)
-
-
-def wait_for_click_deprecated(num_of_clicks: int):
-    left_idle = True
-    right_idle = True
-    if num_of_clicks == 0:
-        left_idle = False
-        right_idle = False
-    left_pressed = False
-    right_pressed = False
-    click_not_occured = True
-    while click_not_occured:
-        left_state = api.GetKeyState(0x01)
-        right_state = api.GetKeyState(0x02)
-        if left_state > -1:
-            left_idle = True
-        if right_state > -1:
-            right_idle = True
-        if left_idle:
-            if left_state < 0:
-                left_pressed = True
-        if right_idle:
-            if right_state < 0:
-                right_pressed = True
-        if left_pressed:
-            if left_state > -1:
-                click_not_occured = False
-        if right_pressed:
-            if right_state > -1:
-                click_not_occured = False
-        time.sleep(0.001)
-
 
 def check_window_validity(active_game_list):
     pass

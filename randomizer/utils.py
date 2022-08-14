@@ -22,6 +22,18 @@ QUERY_INFO = con.PROCESS_QUERY_INFORMATION
 VM_READ = con.PROCESS_VM_READ
 
 
+def write_to_file(string: str, filename: str) -> None:
+    """Helper function to overwrite the text in a file that exists, or create
+    said file with that content
+    Args:
+        string (str): text to be written to file.
+        filename (str): string of path to file, or just filename.
+    Returns:
+        None"""
+    with open(filename, mode="w") as file_object:
+        file_object.write(string)
+
+
 def get_all_handles() -> List:
     """Returns a list of all handles. Obtains curent foreground window and
     iterates through windows in front and behind."""
