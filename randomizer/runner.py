@@ -125,6 +125,9 @@ def random_runner(
                 window_closed = wait_for_click(num_of_clicks, next_game)
                 click_limit -= 1
                 num_of_clicks += 1
+                # force reroll if window was closed
+                if window_closed:
+                    click_limit = 0
         else:
             raise Exception("invalid mode")
         # using a sliced copy of all games to modify later.
