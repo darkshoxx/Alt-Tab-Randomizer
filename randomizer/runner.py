@@ -228,11 +228,19 @@ def check_window_validity(active_game_list):
 if __name__ == "__main__":
     """Acutal execution. Obtains all handles, filters to get the ones
     from ScummVM, prompts user to choose, starts random_runner."""
+    debug = False
+    # Defaults
+    choose_all = False
+    if debug:
+        choose_all = True
+
     list_of_all_handles = get_all_handles()
     scummvm_handles, handles_dict = filter_handles_by_exe_name(list_of_all_handles)
     HANDLE_TO_NAME = handles_dict
-    chosen_list = choose_games_prompt(scummvm_handles, choose_all=True)
+    chosen_list = choose_games_prompt(scummvm_handles, choose_all=choose_all)
     if len(chosen_list) < 2:
         raise Exception("need 2 games at least")
     print(chosen_list)
-    random_runner(chosen_list, mode = "clicks", min = 3, max = 5)
+    if debug:
+        random_runner(chosen_list, mode = "clicks", min = 3, max = 5)
+    else: random_runner(chosen_list)
