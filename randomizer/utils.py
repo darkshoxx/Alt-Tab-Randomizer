@@ -50,7 +50,11 @@ def write_to_file(string: str, filename: str) -> None:
 def get_all_handles() -> List:
     """Returns a list of all handles. Obtains curent foreground window and
     iterates through windows in front and behind."""
-    current_handle = gui.GetForegroundWindow()
+    # GetForegroundWindow() can return 0 in certain circumstances. In that
+    # case it needs to be reloaded.
+    current_handle = 0
+    while current_handle == 0:
+        current_handle = gui.GetForegroundWindow()
     list_of_handles = [current_handle]
     next_handles = get_half_handles(current_handle, "next")
     previous_handles = get_half_handles(current_handle, "previous")
@@ -91,8 +95,10 @@ def filter_handles_by_exe_name(list_of_handles):
     Args:
         list_of_handles (List[int]): List of all handles
     Returns:
-        scummvm_handles (List[int]): List of handles belonging to ScummVM."""
+        scummvm_handles (List[int]): List of handles belonging to ScummVM.
+        handles_dict (Dict{int:str}): dictionary assigning handle to game name."""
     scummvm_handles = []
+    handles_dict = {}
     for handle in list_of_handles:
         ident_b = get_process_id_from_handle(handle)
         # TODO: Replace Try/except with something that doesn't raise an error
@@ -105,9 +111,10 @@ def filter_handles_by_exe_name(list_of_handles):
             # removes handles that are from ScummVM but known not to be
             # the actual game window
             if gui.GetWindowText(handle) not in LIST_OF_WRONG_WINDOWS:
+                handles_dict[handle] = gui.GetWindowText(handle)
                 scummvm_handles.append(handle)
                 print(gui.GetWindowText(handle))
-    return scummvm_handles
+    return scummvm_handles, handles_dict
 
 
 def get_process_id_from_handle(handle: int):
