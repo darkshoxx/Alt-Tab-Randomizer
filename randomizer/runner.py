@@ -7,7 +7,7 @@ import pywintypes
 import time
 import random
 
-from randomizer.utils import get_all_handles, filter_handles_by_exe_name, write_to_file
+from randomizer.utils import check_for_active_handles, get_all_handles, filter_handles_by_exe_name, write_to_file
 
 # Dictionary that maps keyboard-keys to their API represented signals
 BUTTON_TO_KEY = {
@@ -108,6 +108,8 @@ def random_runner(
     gui.SetForegroundWindow(current_handle)
     # TODO:check_window_validity(active_game_list)
     # closing windows removes them from chosen list.
+    # next game initialized for check_alive
+    next_game = None
     while len(chosen_list) > 1:
         if mode == "seconds":
             # get time for random sleeps.
@@ -120,7 +122,7 @@ def random_runner(
                 game_exe = str(gui.GetWindowText(current_handle))
                 info_string = str(num_of_clicks) + "\n Current game: " + game_exe
                 write_to_file(info_string, "clicks.txt")
-                wait_for_click(num_of_clicks)
+                window_closed = wait_for_click(num_of_clicks, next_game)
                 click_limit -= 1
                 num_of_clicks += 1
         else:
@@ -133,6 +135,11 @@ def random_runner(
         # TODO: check_window_validity(active_game_list)
         print(active_game_list)
         next_game = random.choice(active_game_list)
+        # next_game_unavailabe = bool(check_for_active_handles([next_game]))
+        # while next_game_unavailabe:
+        #     next_game = random.choice(active_game_list)
+        #     next_game_unavailabe = bool(check_for_active_handles([next_game]))
+        #     chosen_list.remove(next_game)
         print(next_game)
         # required to fix a bug with active windows.
         # Maybe better solutions exist.
@@ -157,13 +164,15 @@ def random_runner(
 
 
 def wait_for_click(
-    num_of_clicks: int, list_of_buttons: list = ["LMB", "RMB", "Space", "Esc"]
+    num_of_clicks: int, current_handle: int, list_of_buttons: list = ["LMB", "RMB", "Space", "Esc"]
 ):
     """Checks every button in the list for occurring presses. Can handle mutiple
     buttons held during press.
     Arguments:
     num_of_clicks (int): number of clicks since last randomization
     list_of_buttons (list): list of buttons that need to be observed.
+    Returns:
+        True, if window closed, False if not
     """
     # Instantiate arrays where each position represents a key. Keeping track of
     # Idle state and pressed state.
@@ -174,6 +183,10 @@ def wait_for_click(
     pressed_list = [False] * n
     click_not_occured = True
     while click_not_occured:
+        # Check that window is still active
+        if not bool(check_for_active_handles([current_handle])):
+            return True
+
         # get actual values from buttons
         state_list = [api.GetKeyState(BUTTON_TO_KEY[key]) for key in BUTTON_TO_KEY]
 
@@ -195,6 +208,7 @@ def wait_for_click(
                     click_not_occured = False
         # Wait for update
         time.sleep(0.001)
+    return False
 
 def check_window_validity(active_game_list):
     pass

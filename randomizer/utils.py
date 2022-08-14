@@ -21,6 +21,19 @@ LIST_OF_WRONG_WINDOWS = [
 QUERY_INFO = con.PROCESS_QUERY_INFORMATION
 VM_READ = con.PROCESS_VM_READ
 
+def check_for_active_handles(handle_list:list[int])-> list:
+    """Helper function to check whether all handles given are still alive
+    Args:
+        handle_list (list): list of handles to be checked.
+    Returns:
+        list of handles that have died (may be empty)"""
+    dead_handles = []
+    handles = get_all_handles()
+    for check_handle in handle_list:
+        if not(check_handle in handles):
+            dead_handles.append(check_handle)
+    return dead_handles
+
 
 def write_to_file(string: str, filename: str) -> None:
     """Helper function to overwrite the text in a file that exists, or create
