@@ -22,7 +22,7 @@ def test_filter_by_exe():
     """Does a second run through the scummvm handles, tests that they
     belong to scummvm"""
     handles = get_all_handles()
-    filtered_handles, _ = filter_handles_by_exe_name(handles)
+    filtered_handles, _, _ = filter_handles_by_exe_name(handles)
     # This will fail there is no ScummVM instance open.
     assert len(filtered_handles) > 0
     for handle in filtered_handles:

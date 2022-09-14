@@ -7,7 +7,12 @@ import pywintypes
 import time
 import random
 
-from randomizer.utils import check_for_active_handles, get_all_handles, filter_handles_by_exe_name, write_to_file
+from randomizer.utils import (
+    check_for_active_handles,
+    get_all_handles,
+    filter_handles_by_exe_name,
+    write_to_file,
+)
 
 # Dictionary that maps keyboard-keys to their API represented signals
 BUTTON_TO_KEY = {
@@ -175,7 +180,9 @@ def random_runner(
 
 
 def wait_for_click(
-    num_of_clicks: int, current_handle: int, list_of_buttons: list = ["LMB", "RMB", "Space", "Esc"]
+    num_of_clicks: int,
+    current_handle: int,
+    list_of_buttons: list = ["LMB", "RMB", "Space", "Esc"],
 ):
     """Checks every button in the list for occurring presses. Can handle mutiple
     buttons held during press.
@@ -221,6 +228,7 @@ def wait_for_click(
         time.sleep(0.001)
     return False
 
+
 def check_window_validity(active_game_list):
     pass
 
@@ -235,12 +243,17 @@ if __name__ == "__main__":
         choose_all = True
 
     list_of_all_handles = get_all_handles()
-    scummvm_handles, handles_dict = filter_handles_by_exe_name(list_of_all_handles)
+    scummvm_handles, dosbox_handles, handles_dict = filter_handles_by_exe_name(
+        list_of_all_handles
+    )
     HANDLE_TO_NAME = handles_dict
-    chosen_list = choose_games_prompt(scummvm_handles, choose_all=choose_all)
+    chosen_list = choose_games_prompt(
+        scummvm_handles + dosbox_handles, choose_all=choose_all
+    )
     if len(chosen_list) < 2:
         raise Exception("need 2 games at least")
     print(chosen_list)
     if debug:
-        random_runner(chosen_list, mode = "clicks", min = 3, max = 5)
-    else: random_runner(chosen_list)
+        random_runner(chosen_list, mode="clicks", min=3, max=5)
+    else:
+        random_runner(chosen_list)

@@ -16,12 +16,16 @@ LIST_OF_WRONG_WINDOWS = [
     "ScummVM Status Window",
     "__wglDummyWindowFodder",
     "NVOGLDC invisible",
+    "MSCTFIME UI",
+    "Default IME",
+    "DOSBox Status Window",
 ]
 # required for usage of api.OpenProcess()
 QUERY_INFO = con.PROCESS_QUERY_INFORMATION
 VM_READ = con.PROCESS_VM_READ
 
-def check_for_active_handles(handle_list:list[int])-> list:
+
+def check_for_active_handles(handle_list: list[int]) -> list:
     """Helper function to check whether all handles given are still alive
     Args:
         handle_list (list): list of handles to be checked.
@@ -30,7 +34,7 @@ def check_for_active_handles(handle_list:list[int])-> list:
     dead_handles = []
     handles = get_all_handles()
     for check_handle in handle_list:
-        if not(check_handle in handles):
+        if not (check_handle in handles):
             dead_handles.append(check_handle)
     return dead_handles
 
@@ -98,6 +102,7 @@ def filter_handles_by_exe_name(list_of_handles):
         scummvm_handles (List[int]): List of handles belonging to ScummVM.
         handles_dict (Dict{int:str}): dictionary assigning handle to game name."""
     scummvm_handles = []
+    dosbox_handles = []
     handles_dict = {}
     for handle in list_of_handles:
         ident_b = get_process_id_from_handle(handle)
@@ -114,7 +119,12 @@ def filter_handles_by_exe_name(list_of_handles):
                 handles_dict[handle] = gui.GetWindowText(handle)
                 scummvm_handles.append(handle)
                 print(gui.GetWindowText(handle))
-    return scummvm_handles, handles_dict
+        if exe_name[-10:] == "DOSBox.exe":
+            if gui.GetWindowText(handle) not in LIST_OF_WRONG_WINDOWS:
+                handles_dict[handle] = gui.GetWindowText(handle)
+                dosbox_handles.append(handle)
+                print(gui.GetWindowText(handle))
+    return scummvm_handles, dosbox_handles, handles_dict
 
 
 def get_process_id_from_handle(handle: int):
