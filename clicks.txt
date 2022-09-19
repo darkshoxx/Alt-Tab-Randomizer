@@ -1,2 +1,2 @@
-11
- Current game: Clandestiny (Windows/English)
+1
+ Current game: ScummVM 2.6.0 (Jul 17 2022 00:04:49)

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import win32.win32gui as gui
 import win32com.client as the_client
 import win32api as api
@@ -6,6 +6,7 @@ import pywintypes
 
 import time
 import random
+from randomizer.buttons import detect_button_press_and_release, detect_pressed_button
 
 from randomizer.utils import (
     check_for_active_handles,
@@ -91,6 +92,7 @@ def random_runner(
     max: int = None,
     remove_current_game: bool = None,
     mode: str = None,
+    skip: str = None,
 ):
     """Randomly resetting loop. Chooses random next game to display. Time until
     next reset is randomly chosen between min and max seconds.
@@ -100,6 +102,8 @@ def random_runner(
         max (int): maximal number of seconds before window switch
         remove_current_game (bool): forbids to remain in the same game.
         mode (str): "seconds" or "clicks"
+        skip (str): "manual" finds skip button. stringified int for key uses
+            that key, None means no skip. Defaults to None
     """
     # Setting non-default values via prompts
     if mode is None:
@@ -116,6 +120,16 @@ def random_runner(
         remove_current_game = not bool(
             input("Do you allow staying in the same game? (default = n)")
         )
+    if skip is not None:
+        if skip.lower() == "manual":
+            skip_button = detect_pressed_button()
+        else:
+            skip_button = int(skip)
+        print(f"chosen Skip button index:{skip_button}")
+    else:
+        print("No skip button")
+        skip_button = None
+
     shell = the_client.Dispatch("WScript.Shell")
     # Start with first entry on list
     current_handle = chosen_list[0]
@@ -128,6 +142,7 @@ def random_runner(
         if mode == "seconds":
             # get time for random sleeps.
             float_random = random.uniform(min, max)
+            # TODO async call to ensure Skip capability
 
             time.sleep(float_random)
         elif mode == "clicks":
@@ -137,13 +152,20 @@ def random_runner(
                 game_exe = str(gui.GetWindowText(current_handle))
                 info_string = str(num_of_clicks) + "\n Current game: " + game_exe
                 write_to_file(info_string, "clicks.txt")
-                window_closed = wait_for_click(num_of_clicks, next_game)
+                reroll, reason = wait_for_click(
+                    num_of_clicks=num_of_clicks,
+                    current_handle=next_game,
+                    skip=skip_button,
+                )
                 click_limit -= 1
                 num_of_clicks += 1
                 # force reroll if window was closed
-                if window_closed:
-                    chosen_list.remove(next_game)
-                    print(f"Warning, game {next_game} was closed.")
+                if reroll:
+                    if reason == "window":
+                        chosen_list.remove(next_game)
+                        print(f"Warning, game {next_game} was closed.")
+                    if reason == "skip":
+                        print(f"Skip button {skip_button} was pressed, skipping")
                     click_limit = 0
         else:
 
@@ -183,50 +205,53 @@ def wait_for_click(
     num_of_clicks: int,
     current_handle: int,
     list_of_buttons: list = ["LMB", "RMB", "Space", "Esc"],
-):
+    skip: int = None,
+) -> Tuple[bool, str]:
     """Checks every button in the list for occurring presses. Can handle mutiple
     buttons held during press.
     Arguments:
     num_of_clicks (int): number of clicks since last randomization
     list_of_buttons (list): list of buttons that need to be observed.
+    skip (int)
     Returns:
-        True, if window closed, False if not
+        (True, "window")    if window closed,
+        (True, "skip")      if skip occured,
+        (False, "")         else
     """
     # Instantiate arrays where each position represents a key. Keeping track of
     # Idle state and pressed state.
-    n = len(list_of_buttons)
-    idle_list = [True] * n
+    number_of_buttons = len(list_of_buttons)
+    idle_list = [True] * number_of_buttons
+    idle_skip = [True]
     if num_of_clicks == 0:
-        idle_list = [False] * n
-    pressed_list = [False] * n
+        idle_list = [False] * number_of_buttons
+    pressed_list = [False] * number_of_buttons
+    pressed_skip = [False]
     click_not_occured = True
     while click_not_occured:
         # Check that window is still active
         if bool(check_for_active_handles([current_handle])):
-            return True
+            return (True, "window")
 
         # get actual values from buttons
         state_list = [api.GetKeyState(BUTTON_TO_KEY[key]) for key in BUTTON_TO_KEY]
+        if skip:
+            state_skip = [api.GetKeyState(skip)]
+            # detect skip press
+            skip_not_occured = detect_button_press_and_release(
+                1, idle_skip, pressed_skip, state_skip
+            )
+            if not skip_not_occured:
+                return (True, "skip")
 
-        # test for idle buttons
-        for index in range(n):
-            if state_list[index] > -1:
-                idle_list[index] = True
+        # detect input presses
+        click_not_occured = detect_button_press_and_release(
+            number_of_buttons, idle_list, pressed_list, state_list
+        )
 
-        # test for buttons pressed after being idle
-        for index in range(n):
-            if idle_list[index]:
-                if state_list[index] < 0:
-                    pressed_list[index] = True
-
-        # test for buttons released after being pressed
-        for index in range(n):
-            if pressed_list[index]:
-                if state_list[index] > -1:
-                    click_not_occured = False
         # Wait for update
         time.sleep(0.001)
-    return False
+    return (False, "")
 
 
 def check_window_validity(active_game_list):
@@ -236,7 +261,7 @@ def check_window_validity(active_game_list):
 if __name__ == "__main__":
     """Acutal execution. Obtains all handles, filters to get the ones
     from ScummVM, prompts user to choose, starts random_runner."""
-    debug = False
+    debug = True
     # Defaults
     choose_all = False
     if debug:
@@ -254,6 +279,6 @@ if __name__ == "__main__":
         raise Exception("need 2 games at least")
     print(chosen_list)
     if debug:
-        random_runner(chosen_list, mode="clicks", min=3, max=5)
+        random_runner(chosen_list, mode="clicks", min=3, max=5, skip="manual")
     else:
         random_runner(chosen_list)
