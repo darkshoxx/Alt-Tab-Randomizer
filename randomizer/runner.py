@@ -186,9 +186,14 @@ def random_runner(
         # Choose next window, start over.
         try:
             gui.SetForegroundWindow(next_game)
-        except pywintypes.error:
-            chosen_list.remove(next_game)
-            print(f"Warning, game {next_game} was closed.")
+        except pywintypes.error as e:
+            print(e)
+            if e.winerror == 1400:
+                chosen_list.remove(next_game)
+                print(f"Warning, game {next_game} was closed.")
+            else:
+                # something happened, we don't know what
+                pass
     while len(chosen_list) == 1:
         # very lazy way of checking that the window is still open
         print(f"Final Game {next_game} is still running.")
