@@ -3,7 +3,7 @@ import win32.win32gui as gui
 import win32com.client as the_client
 import win32api as api
 import pywintypes
-
+import datetime
 import time
 import random
 from randomizer.buttons import detect_button_press_and_release, detect_pressed_button
@@ -12,6 +12,7 @@ from randomizer.utils import (
     check_for_active_handles,
     get_all_handles,
     filter_handles_by_exe_name,
+    read_from_file,
     write_to_file,
 )
 
@@ -27,6 +28,13 @@ BUTTON_TO_KEY = {
 # start of the main execution.
 HANDLE_TO_NAME = {}
 
+# Allows Chat to skip
+CHAT_INTERACT = True
+CHAT_COOLDOWN = True
+SKIPCOUNTER = 0
+OFFSET = 0
+HIT_DICT = {}
+INTERFACE = r"C:\Code\GithubRepos\Alt-Tab-Randomizer\interface.txt"
 
 def choose_games_prompt(scummvm_handles: List, choose_all: bool = False) -> List:
     """Creates a list of all handles that belong to ScummVM games, and makes
@@ -235,8 +243,29 @@ def wait_for_click(
     click_not_occured = True
     while click_not_occured:
         # Check that window is still active
+        global OFFSET
+        global SKIPCOUNTER
+        global HIT_DICT
         if bool(check_for_active_handles([current_handle])):
             return (True, "window")
+        
+        if (CHAT_INTERACT):
+            content = read_from_file(INTERFACE)
+            if content:
+                write_to_file("", INTERFACE)
+                SKIPCOUNTER += 1
+                # print("Target:", OFFSET )
+                print(SKIPCOUNTER, content)
+                if SKIPCOUNTER > OFFSET:
+                    if content in HIT_DICT.keys():
+                        score = HIT_DICT[content]
+                        HIT_DICT[content] = score + 1
+                    else:
+                        HIT_DICT[content] = 1
+                    OFFSET = random.sample([1,2,3,4,5,6],1)[0]
+                    SKIPCOUNTER = 0
+                    print(HIT_DICT)
+                    return (True, "skip")
 
         # get actual values from buttons
         state_list = [api.GetKeyState(BUTTON_TO_KEY[key]) for key in BUTTON_TO_KEY]
@@ -284,6 +313,6 @@ if __name__ == "__main__":
         raise Exception("need 2 games at least")
     print(chosen_list)
     if debug:
-        random_runner(chosen_list, mode="clicks", min=3, max=5, skip="manual")
+        random_runner(chosen_list, mode="clicks", min=30000, max=50000, skip=None)
     else:
         random_runner(chosen_list)

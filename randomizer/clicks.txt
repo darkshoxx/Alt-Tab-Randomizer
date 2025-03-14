@@ -1,0 +1,2 @@
+1
+ Current game: DOSBox 0.72, Cpu Cycles:     3000, Frameskip  0, Program:    KEEN2

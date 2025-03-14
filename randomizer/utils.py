@@ -38,6 +38,9 @@ def check_for_active_handles(handle_list: list[int]) -> list:
             dead_handles.append(check_handle)
     return dead_handles
 
+def read_from_file(filename: str)-> str:
+    with open(filename, mode="r") as file_object:
+        return file_object.read()   
 
 def write_to_file(string: str, filename: str) -> None:
     """Helper function to overwrite the text in a file that exists, or create
@@ -119,11 +122,14 @@ def filter_handles_by_exe_name(list_of_handles):
                 handles_dict[handle] = gui.GetWindowText(handle)
                 scummvm_handles.append(handle)
                 print(gui.GetWindowText(handle))
-        if exe_name[-10:] == "DOSBox.exe":
-            if gui.GetWindowText(handle) not in LIST_OF_WRONG_WINDOWS:
-                handles_dict[handle] = gui.GetWindowText(handle)
+        # if exe_name[-10:] == "DOSBox.exe":
+        #     if gui.GetWindowText(handle) not in LIST_OF_WRONG_WINDOWS:
+        #         handles_dict[handle] = gui.GetWindowText(handle)
+        #         dosbox_handles.append(handle)
+        #         print(gui.GetWindowText(handle))
+        if gui.GetWindowText(handle)[:6] =="DOSBox":
+            if gui.GetWindowText(handle)[7:13] != "Status":
                 dosbox_handles.append(handle)
-                print(gui.GetWindowText(handle))
     return scummvm_handles, dosbox_handles, handles_dict
 
 
